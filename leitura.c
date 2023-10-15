@@ -1,25 +1,19 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <locale.h>
 
-/* Argumentos de linha de comando em C
-    argc: o número de argumentos passados para o programa na linha de comando.
-    O primeiro argumento é o nome do programa em si, e o valor mínimo de argc é 1 (indicando apenas o nome do programa).
-    argv[]: : Um array de strings (ou seja, um array de ponteiros para caracteres) que contém os argumentos passados para o programa. 
-    argv[0] normalmente contém o nome do programa e argv[1] em diante contém os argumentos adicionais.
+// Esse programa lê um arquivo CSV externo e disponibiliza os dados para o programa que fará a análise.
+// O programa recebe como parâmetro o arquivo CSV que será feita a leitura dos dados.
+
+// No PowerShell, use esse comando p/ poder exibir caracteres latinos: 65001
+
+/*
+Compila:
+    gcc leitura.c -o leitura.out && gcc analise.c -o analise.out && gcc relatorio.c -o relatorio.out 
+Executa:
+    ./leitura.out vendas.csv | ./analise.out | ./relatorio relatorio.txt
 */
 int main(int argc, char* argv[]) {
-    //setlocale(LC_ALL, "Portuguese");
-    // No PowerShell, usa esse comando p/ poder exibir caracteres latinos: 65001
-
-    // Debug - pode comentar / apagar
-    printf("Número de argumentos: %d\n", argc);
-
-    for (int i = 0; i < argc; i++) {
-        printf("Argumento %d: %s\n", i, argv[i]);
-    }
-
     int indicedoComandoLeitura;
     int existeIndiceL = 0;
     char ch;
@@ -31,7 +25,9 @@ int main(int argc, char* argv[]) {
         }
     }
 
+    // Se foi adicionado um segundo argumento
     if(existeIndiceL){
+        // Ler arquivo CSV
         indicedoComandoLeitura = 1; 
             FILE *dados_leitura = fopen(argv[indicedoComandoLeitura], "r");
 
@@ -41,34 +37,18 @@ int main(int argc, char* argv[]) {
                 return 1;
             }
 
-            FILE *dados_escrita = fopen("relatorio.txt", "w");
-            
-            // Verificando se o arquivo relatorio.txt foi gerado com sucesso
-            if (dados_escrita == NULL) {
-                printf("Erro ao criar o arquivo de saída!\n");
-                return 1;
-            }
-
-            /*
-            while (!feof(dados_leitura)) {
-                ch = fgetc(dados_leitura);
+            while ( (ch = fgetc(dados_leitura)) != EOF) {
+                // Imprime em STDOUT
                 printf("%c", ch);
-
-                fputc(ch, dados_escrita);
             }
-            */
-
-            while ((ch = fgetc(dados_leitura)) != EOF) {
-                fputc(ch, dados_escrita);
-            }
-
+           
             fclose(dados_leitura);
-            fclose(dados_escrita);
 
         return 0;
     }
+    // Se NÃO houver um segundo argumento
     else {
-        printf("Adicione o arquivo CSV para ser lido pelo programa!\n");
+        printf("Nenhum arquivo CSV adicionado. Programa finalizado.\n");
 
         return 1;
     }
