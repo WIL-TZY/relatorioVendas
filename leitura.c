@@ -5,7 +5,7 @@
 // Esse programa lê um arquivo CSV externo e disponibiliza os dados para o programa que fará a análise.
 // O programa recebe como parâmetro o arquivo CSV que será feita a leitura dos dados.
 
-// No PowerShell, use esse comando p/ poder exibir caracteres latinos: 65001
+// No PowerShell, use esse comando p/ poder exibir caracteres latinos: chcp 65001
 
 /*
 Compila:

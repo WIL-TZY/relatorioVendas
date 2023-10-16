@@ -7,7 +7,6 @@ int main() {
     /* Esse programa deve receber os dados atualizados pelo programa analise 
        e produzir o arquivo relatorio.txt (sendo que esse nome pode ser definido pelo usuario) */
 
-
     // Abrir o arquivo relatorios.txt para escrita
     FILE *dados_escrita = fopen("relatorio.txt", "w");
     
