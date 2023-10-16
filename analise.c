@@ -5,9 +5,6 @@
 // Esse programa vai montar o relatório de vendas e disponibilizar os dados para um terceiro programa que irá criar o relatório final.
 // Não recebe parâmetros.
 
-// ------------------------------------ Protótipos das funções aqui ------------------------------------ //
-
-// ----------------------------------------------------------------------------------------------------- //
 typedef struct {
     int id_vendedor;
     char nome[100];
@@ -16,6 +13,12 @@ typedef struct {
     int id_venda;
     double valor_venda;
 } Vendedor;
+
+// ------------------------------------ Protótipos das funções aqui ------------------------------------ //
+double calcularTotalVendas(Vendedor vendedores[], int quantidadeVendedores);
+void ordenarVendedoresPorVendas(Vendedor vendedores[], int quantidadeVendedores);
+void gerarRelatorio(Vendedor vendedores[], int quantidadeVendedores);
+// ----------------------------------------------------------------------------------------------------- //
 
 int main() {
     Vendedor vendedores[100];
@@ -84,16 +87,64 @@ int main() {
         printf("\n");
     }
 
-    /*
-    // Lê o que recebeu de leitura.c na entrada padrão (STDIN)
-    while ((ch = getchar()) != EOF) {
-        //(DEBUG) Imprimindo o conteúdo recebido no console 
-        // printf("%c", ch); // ------> retorna dados binários ao invés de texto >:c
-        putchar(ch);
-    }
-    */
-   
+        gerarRelatorio(vendedores, quantidadeVendedores);
+
+
     return 0;
 }
 
 // ------------------------------------ CRIAR FUNÇÕES AQUI ------------------------------------ //
+
+
+double calcularTotalVendas(Vendedor vendedores[], int quantidadeVendedores) {
+    double totalVendas = 0.0;
+    for (int i = 0; i < quantidadeVendedores; i++) {
+        totalVendas += vendedores[i].valor_venda;
+    }
+    return totalVendas;
+}
+
+// Outra função parecida com a de cima só que por equipe (?)
+
+void ordenarVendedoresPorVendas(Vendedor vendedores[], int quantidadeVendedores) {
+    // Dar uma olhada em algoritmos de ordenação??
+    // Ou só comparar valor_venda de um com outro já dá?
+}
+
+void gerarRelatorio(Vendedor vendedores[], int quantidadeVendedores) {
+    // Calcular total de vendas
+    double totalVendas = calcularTotalVendas(vendedores, quantidadeVendedores);
+
+    // Ordenar vendedores por vendas
+    ordenarVendedoresPorVendas(vendedores, quantidadeVendedores);
+
+    // Títulos
+    printf("------ Relatório de Vendas ------\n");
+    printf("Total de Vendas da Empresa: R$ %.2lf\n", totalVendas);
+    printf("\n\n");
+    
+    // Total de vendas por equipe
+    // ...
+
+    // Gerente da equipe vencedora
+    // ...
+
+    // Melhor vendedor
+    // ...
+
+    // Lista de vendedores
+    printf("Lista de Vendedores (por vendas decrescentes):\n");
+    printf("Nome\t\t\t\tCargo\t\tEquipe\t\tTotal de Vendas\t\tMaior Venda\t\tComissão\n");
+
+    for (int i = 0; i < quantidadeVendedores; i++) {
+        // Formatar e escrever os detalhes para cada vendedor (usando tabs tava dando inconsistência)
+        printf("%-30s %-20s %02d \t\tR$ %12.2f \tR$ %12.2f \tR$ %10.2f\n", 
+            vendedores[i].nome, 
+            vendedores[i].cargo, 
+            vendedores[i].equipe, 
+            vendedores[i].valor_venda, 
+            vendedores[i].valor_venda, 
+            (vendedores[i].valor_venda * 0.03)
+        );
+    }
+}
