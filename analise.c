@@ -22,6 +22,7 @@ typedef struct {
     int id_venda;
     double valor_venda;
     double comissao;
+    double maior_venda;
 } DefinaVenda;
 
 typedef struct {
@@ -30,8 +31,14 @@ typedef struct {
     char nome_gerente[MAX];
 } DefinaVendasDaEquipe;
 
+typedef struct {
+    char nome_vendedor[MAX];
+    double maior_venda;
+} InfoVendedor;
+
 // ------------------------------------ Protótipos das funções aqui ------------------------------------ //
 double calcularTotalVendas(DefinaVenda venda[], int qtdVendas);
+void encontrarMelhorVenda(DefinaVenda venda[], int qtdVendas);
 void ordenarVendedoresPorVendas(DefinaVenda venda[], int qtdVendas);
 void gerarRelatorio(DefinaVenda venda[], int qtdVendas, double total_vendas, DefinaVendasDaEquipe vendasDaEquipe[]);
 // ----------------------------------------------------------------------------------------------------- //
@@ -39,13 +46,20 @@ void gerarRelatorio(DefinaVenda venda[], int qtdVendas, double total_vendas, Def
 int main() {
     DefinaVenda venda[MAX];
     DefinaVendasDaEquipe vendasDaEquipe[MAX];
+    InfoVendedor infoVendedor[MAX];
+    int numeroDeVendedores = 0;
     int linha = 0;
     int colunasCSV = 6;
     char bufferLinhas[MAX]; // Esse buffer vai ser usado temporariamente para armazenar os dados pegos do STDIN
     int contadorDeChar = 0;
     char ch;
 
-    // Lê de linha em linha
+    // Inicializando struct de informações do vendedor
+    for (int i = 0; i < MAX; i++) {
+        infoVendedor[i].maior_venda = 0.0;
+    }
+
+    // Lê dados de vendas linha a linha
     while ((ch = getchar()) != EOF) {
         // Quando encontrar uma quebra de linha, termina a linha com '\0' 
         if (ch != '\n') {
@@ -86,7 +100,23 @@ int main() {
                     } else if (strcmp(venda[linha].cargo, "gerente") == 0) {
                         venda[linha].comissao = venda[linha].valor_venda * COMISSAO_GERENTE;
                     }
+
+
+                    // Calcula a maior venda por vendedor
+                    if (venda[linha].valor_venda > infoVendedor[numeroDeVendedores].maior_venda) {
+                        infoVendedor[numeroDeVendedores].maior_venda = venda[linha].valor_venda;
+                    }
+
+                    // Checando se tem próximo vendedor
+                    if (strcmp(venda[linha].nome_vendedor, infoVendedor[numeroDeVendedores].nome_vendedor) != 0) {
+                        // Novo vendedor, incrementa a contagem
+                        numeroDeVendedores++;
+                        strncpy(infoVendedor[numeroDeVendedores].nome_vendedor, venda[linha].nome_vendedor, MAX);
+                    }
+
+
                 }
+
                 token = strtok(NULL, ",");
                 col++;
             }
@@ -95,7 +125,7 @@ int main() {
                 // Processa apenas vendas com valor maior do que zero
                 if (venda[linha].valor_venda > 0.0) { 
                     // Verifica se o cargo indica um gerente
-                    if (strcmp(venda[linha].cargo, "gerente")) {
+                    if (strcmp(venda[linha].cargo, "gerente") == 0) {
                         // Armazena o nome do gerente
                         strcpy(vendasDaEquipe[venda[linha].equipe - 1].nome_gerente, venda[linha].nome_vendedor);
                     }
@@ -115,6 +145,7 @@ int main() {
     // ------------------------------------ USAR FUNÇÕES AQUI ------------------------------------ //
     
     double total_vendas = calcularTotalVendas(venda, linha);
+    encontrarMelhorVenda(venda, linha);
     ordenarVendedoresPorVendas(venda, linha);
     gerarRelatorio(venda, linha, total_vendas, vendasDaEquipe);
 
@@ -131,30 +162,30 @@ double calcularTotalVendas(DefinaVenda venda[], int qtdVendas) {
     return total_vendas;
 }
 
+void encontrarMelhorVenda(DefinaVenda venda[], int qtdVendas) {
+    for (int i = 0; i < qtdVendas; i++) {
+        if (venda[i].valor_venda > venda[i].maior_venda) {
+            venda[i].maior_venda = venda[i].valor_venda;
+        }
+    }
+}
+
 void ordenarVendedoresPorVendas(DefinaVenda venda[], int qtdVendas) {
-    // Dar uma olhada em algoritmos de ordenação??
-    // Ou só comparar valor_venda de um com outro já dá?
+    for (int i = 0; i < qtdVendas - 1; i++) {
+        for (int j = 0; j < qtdVendas - i - 1; j++) {
+            if (venda[j].valor_venda < venda[j + 1].valor_venda) {
+                DefinaVenda temp = venda[j];
+                venda[j] = venda[j + 1];
+                venda[j + 1] = temp;
+            }
+        }
+    }
 }
 
 void gerarRelatorio(DefinaVenda venda[], int qtdVendas, double total_vendas, DefinaVendasDaEquipe vendasDaEquipe[]) {
     printf("------ Relatório de Vendas ------\n");
     printf("Total de Vendas da Empresa: R$ %.2lf\n", total_vendas);
     printf("\n\n");
-
-    // Imprimir a lista de vendedores
-    printf("Lista de Vendedores (por vendas decrescentes):\n");
-    printf("Nome\t\t\t\tCargo\t\tEquipe\t\tTotal de Vendas\t\tMaior Venda\t\tComissão\n");
-
-    for (int i = 0; i < qtdVendas; i++) {
-        printf("%-30s %-20s %02d \t\tR$ %12.2f \tR$ %12.2f \tR$ %10.2f\n",
-            venda[i].nome_vendedor,
-            venda[i].cargo,
-            venda[i].equipe,
-            venda[i].valor_venda,
-            venda[i].valor_venda, // Maior venda não foi calculado ainda
-            venda[i].comissao
-        );
-    }
 
     // Imprimir o total de vendas por equipe
     printf("\nTotal de Vendas por Equipe (do maior para o menor):\n");
@@ -164,21 +195,32 @@ void gerarRelatorio(DefinaVenda venda[], int qtdVendas, double total_vendas, Def
         }
     }
 
-    // Imprimir o gerente do time vencedor
-    int indiceTimeVencedor = -1;
-    double maiorVendaDaEquipe = 0.0;
+    // Após calcular o total de vendas de cada equipe, determina a equipe vencedora
+    int timeVencedor = -1;
+    double maiorVendaTotal = 0.0;
 
     for (int i = 0; i < MAX; i++) {
-        if (vendasDaEquipe[i].total_vendas > maiorVendaDaEquipe) {
-            maiorVendaDaEquipe = vendasDaEquipe[i].total_vendas;
-            indiceTimeVencedor = i;
+        if (vendasDaEquipe[i].total_vendas > maiorVendaTotal) {
+            maiorVendaTotal = vendasDaEquipe[i].total_vendas;
+            timeVencedor = i;
         }
     }
 
-    if (indiceTimeVencedor != -1) {
-        printf("Gerente da Equipe Vencedora: %s\n", vendasDaEquipe[indiceTimeVencedor].nome_gerente);
-    } else {
-        printf("Erro: Nenhum time encontrado.\n");
+    // (DEBUG)
+    /*
+    printf("\nTotal de Vendas por Equipe (do maior para o menor):\n");
+    for (int i = 0; i < numeroDeVendedores; i++) {
+        printf("Equipe %02d - Total Vendas: %.2lf - Nome Gerente: %s\n", vendasDaEquipe[i].equipe, vendasDaEquipe[i].total_vendas, vendasDaEquipe[i].nome_gerente);
+    }
+    */
+   
+    // Achando o gerente do time vencedor e armazenando na struct vendasDaEquipe
+    if (timeVencedor != -1) {
+        strcpy(vendasDaEquipe[timeVencedor].nome_gerente, venda[timeVencedor].nome_vendedor);
+        printf("Gerente da Equipe Vencedora: %s\n", vendasDaEquipe[timeVencedor].nome_gerente);
+    }
+    else {
+        printf("Erro: Nenhum gerente encontrado.\n");
     }
 
     // Imprimir o melhor vendedor
@@ -196,5 +238,21 @@ void gerarRelatorio(DefinaVenda venda[], int qtdVendas, double total_vendas, Def
         printf("Melhor vendedor(a): %s\n", venda[indiceMelhorVendedor].nome_vendedor);
     } else {
         printf("Erro: Nenhum(a) vendedor(a) encontrado(a).\n");
+    }
+
+
+    // Imprimir a lista de vendedores
+    printf("Lista de Vendedores (por vendas decrescentes):\n");
+    printf("Nome\t\t\t\tCargo\t\tEquipe\t\tTotal de Vendas\t\tMaior Venda\t\tComissão\n");
+
+    for (int i = 0; i < qtdVendas; i++) {
+        printf("%-30s %-20s %02d \t\tR$ %12.2f \tR$ %12.2f \tR$ %10.2f\n",
+            venda[i].nome_vendedor,
+            venda[i].cargo,
+            venda[i].equipe,
+            venda[i].valor_venda,
+            venda[i].valor_venda, // Maior venda não foi calculado ainda
+            venda[i].comissao
+        );
     }
 }
