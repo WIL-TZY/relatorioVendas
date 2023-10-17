@@ -54,9 +54,11 @@ int main() {
     int contadorDeChar = 0;
     char ch;
 
-    // Inicializando struct de informações do vendedor
+    // Inicialize as estruturas
     for (int i = 0; i < MAX; i++) {
         infoVendedor[i].maior_venda = 0.0;
+        vendasDaEquipe[i].total_vendas = 0.0;
+        vendasDaEquipe[i].nome_gerente[0] = '\0';
     }
 
     // Lê dados de vendas linha a linha
@@ -121,11 +123,12 @@ int main() {
             }
 
                 // --------------------------------------- ACHANDO O GERENTE --------------------------------------- //
-                    // // Verifica se o cargo indica um gerente
-                    // if (strcmp(venda[linha].cargo, "gerente") == 0) {
-                    //     // Armazena o nome do gerente
-                    //     strcpy(vendasDaEquipe[venda[linha].equipe - 1].nome_gerente, venda[linha].nome_vendedor);
-                    // }
+                    if (strcmp(venda[linha].cargo, "gerente") == 0) {
+                        // Se o vendedor for um gerente, armazene o nome do gerente da equipe correspondente
+                        int equipe = venda[linha].equipe;
+                        strncpy(vendasDaEquipe[equipe - 1].nome_gerente, venda[linha].nome_vendedor, sizeof(vendasDaEquipe[equipe - 1].nome_gerente) - 1);
+                    }
+
                     encontrarMelhorVenda(venda, linha, numeroDeVendedores);
 
                     // Próxima linha (incrementa a venda)
@@ -203,14 +206,6 @@ void gerarRelatorio(DefinaVenda venda[], int qtdVendas, double total_vendas, Def
             timeVencedor = i;
         }
     }
-
-    // (DEBUG)
-    /*
-    printf("\nTotal de Vendas por Equipe (do maior para o menor):\n");
-    for (int i = 0; i < numeroDeVendedores; i++) {
-        printf("Equipe %02d - Total Vendas: %.2lf - Nome Gerente: %s\n", vendasDaEquipe[i].equipe, vendasDaEquipe[i].total_vendas, vendasDaEquipe[i].nome_gerente);
-    }
-    */
    
     // Achando o gerente do time vencedor e armazenando na struct vendasDaEquipe
     if (timeVencedor != -1) {
