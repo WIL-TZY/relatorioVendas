@@ -5,6 +5,8 @@
 // Esse programa vai montar o relatório de vendas e disponibilizar os dados para um terceiro programa que irá criar o relatório final.
 // Não recebe parâmetros.
 
+#define MAX 100
+
 // Valores --- Comissão
 const double COMISSAO_JUNIOR = 0.01;
 const double COMISSAO_PLENO = 0.02;
@@ -13,13 +15,18 @@ const double COMISSAO_GERENTE = 0.05;
 
 typedef struct {
     int id_vendedor;
-    char nomeVendedor[100];
+    char nomeVendedor[MAX];
     char cargo[20];
     int equipe;
     int id_venda;
     double valor_venda;
     double comissao;
 } DefinaVenda;
+
+typedef struct {
+    int equipe;
+    double totalVendas;
+} DefinaVendasDaEquipe;
 
 // ------------------------------------ Protótipos das funções aqui ------------------------------------ //
 double calcularTotalVendas(DefinaVenda venda[], int qtdVendas);
@@ -28,10 +35,11 @@ void gerarRelatorio(DefinaVenda venda[], int qtdVendas);
 // ----------------------------------------------------------------------------------------------------- //
 
 int main() {
-    DefinaVenda venda[100];
+    DefinaVenda venda[MAX];
+    DefinaVendasDaEquipe vendasDaEquipe[MAX];
     int linha = 0;
     int colunasCSV = 6;
-    char bufferLinhas[100]; // Esse buffer vai ser usado temporariamente para armazenar os dados pegos do STDIN
+    char bufferLinhas[MAX]; // Esse buffer vai ser usado temporariamente para armazenar os dados pegos do STDIN
     int contadorDeChar = 0;
     char ch;
 
@@ -69,11 +77,11 @@ int main() {
                 token = strtok(NULL, ",");
                 col++;
             }
-                // Próxima linha (incrementa o vendedor)
+                // Próxima linha (incrementa a venda)
                 linha++;
 
                 // Checagem de segurança
-                if (linha >= 100) {
+                if (linha >= MAX) {
                     printf("Quantidade de venda excedida.\n");
                     return 1;
                 }
@@ -82,19 +90,26 @@ int main() {
 
     // ------------------------------------ USAR FUNÇÕES AQUI ------------------------------------ //
     
-    // (DEBUG) Imprimindo os dados de cada struct
-    for (int i = 0; i < linha; i++) {
-        printf("Venda %d:\n", i + 1);
-        printf("ID: %d\n", venda[i].id_vendedor);
-        printf("Nome: %s\n", venda[i].nomeVendedor);
-        printf("Cargo: %s\n", venda[i].cargo);
-        printf("Equipe: %d\n", venda[i].equipe);
-        printf("ID da venda: %d\n", venda[i].id_venda);
-        printf("Valor da venda: %.2f\n", venda[i].valor_venda);
-        printf("\n");
+    // Inicializando as variáveis da struct
+    for (int i = 0; i < MAX; i++) {
+        vendasDaEquipe[i].equipe = i + 1;
+        vendasDaEquipe[i].totalVendas = 0.0;
     }
 
-        gerarRelatorio(venda, linha);
+    // Iterando de novo cada linha p/ calcular o total de vendas de cada equipe
+    for (int i = 0; i < linha; i++) {
+        int indiceEquipe = venda[i].equipe - 1; 
+        vendasDaEquipe[indiceEquipe].totalVendas += venda[i].valor_venda;
+    }
+
+    printf("Total de Vendas por Equipe (do maior para o menor):\n");
+    for (int i = 0; i < MAX; i++) { // Loop through the array of teams
+        if (vendasDaEquipe[i].totalVendas > 0.0) {
+            printf("Equipe %02d - Vendas: R$ %.2lf\n", vendasDaEquipe[i].equipe, vendasDaEquipe[i].totalVendas);
+        }
+    }
+
+    gerarRelatorio(venda, linha);
 
 
     return 0;
@@ -155,3 +170,18 @@ void gerarRelatorio(DefinaVenda venda[], int qtdVendas) {
         );
     }
 }
+
+
+// (DEBUG) Imprimindo os dados de cada struct
+/*
+for (int i = 0; i < linha; i++) {
+    printf("Venda %d:\n", i + 1);
+    printf("ID do vendedor: %d\n", venda[i].id_vendedor);
+    printf("Nome: %s\n", venda[i].nomeVendedor);
+    printf("Cargo: %s\n", venda[i].cargo);
+    printf("Equipe: %d\n", venda[i].equipe);
+    printf("ID da venda: %d\n", venda[i].id_venda);
+    printf("Valor da venda: %.2f\n", venda[i].valor_venda);
+    printf("\n");
+}
+*/
