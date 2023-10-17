@@ -75,6 +75,17 @@ int main() {
                     venda[linha].id_venda = atoi(token);
                 } else if (col == 5) {
                     venda[linha].valor_venda = atof(token);
+
+                    // Adicionando cálculos de comissão baseados no cargo
+                    if (strcmp(venda[linha].cargo, "junior") == 0) {
+                        venda[linha].comissao = venda[linha].valor_venda * COMISSAO_JUNIOR;
+                    } else if (strcmp(venda[linha].cargo, "pleno") == 0) {
+                        venda[linha].comissao = venda[linha].valor_venda * COMISSAO_PLENO;
+                    } else if (strcmp(venda[linha].cargo, "senior") == 0) {
+                        venda[linha].comissao = venda[linha].valor_venda * COMISSAO_SENIOR;
+                    } else if (strcmp(venda[linha].cargo, "gerente") == 0) {
+                        venda[linha].comissao = venda[linha].valor_venda * COMISSAO_GERENTE;
+                    }
                 }
                 token = strtok(NULL, ",");
                 col++;
