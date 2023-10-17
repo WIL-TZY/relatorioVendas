@@ -38,9 +38,9 @@ typedef struct {
 
 // ------------------------------------ Protótipos das funções aqui ------------------------------------ //
 double calcularTotalVendas(DefinaVenda venda[], int qtdVendas);
-void encontrarMelhorVenda(DefinaVenda venda[], int qtdVendas);
+void encontrarMelhorVenda(DefinaVenda venda[], int qtdVendas, int numeroDeVendedores);
 void ordenarVendedoresPorVendas(DefinaVenda venda[], int qtdVendas);
-void gerarRelatorio(DefinaVenda venda[], int qtdVendas, double total_vendas, DefinaVendasDaEquipe vendasDaEquipe[]);
+void gerarRelatorio(DefinaVenda venda[], int qtdVendas, double total_vendas, DefinaVendasDaEquipe vendasDaEquipe[], int numeroDeVendedores);
 // ----------------------------------------------------------------------------------------------------- //
 
 int main() {
@@ -114,7 +114,6 @@ int main() {
                         strncpy(infoVendedor[numeroDeVendedores].nome_vendedor, venda[linha].nome_vendedor, MAX);
                     }
 
-
                 }
 
                 token = strtok(NULL, ",");
@@ -122,17 +121,15 @@ int main() {
             }
 
                 // --------------------------------------- ACHANDO O GERENTE --------------------------------------- //
-                // Processa apenas vendas com valor maior do que zero
-                if (venda[linha].valor_venda > 0.0) { 
-                    // Verifica se o cargo indica um gerente
-                    if (strcmp(venda[linha].cargo, "gerente") == 0) {
-                        // Armazena o nome do gerente
-                        strcpy(vendasDaEquipe[venda[linha].equipe - 1].nome_gerente, venda[linha].nome_vendedor);
-                    }
+                    // // Verifica se o cargo indica um gerente
+                    // if (strcmp(venda[linha].cargo, "gerente") == 0) {
+                    //     // Armazena o nome do gerente
+                    //     strcpy(vendasDaEquipe[venda[linha].equipe - 1].nome_gerente, venda[linha].nome_vendedor);
+                    // }
+                    encontrarMelhorVenda(venda, linha, numeroDeVendedores);
 
                     // Próxima linha (incrementa a venda)
                     linha++;
-                }
 
                 // Checagem de segurança
                 if (linha >= MAX) {
@@ -145,9 +142,10 @@ int main() {
     // ------------------------------------ USAR FUNÇÕES AQUI ------------------------------------ //
     
     double total_vendas = calcularTotalVendas(venda, linha);
-    encontrarMelhorVenda(venda, linha);
+
+    // Essa função deve ser chamada após processar todas as vendas
     ordenarVendedoresPorVendas(venda, linha);
-    gerarRelatorio(venda, linha, total_vendas, vendasDaEquipe);
+    gerarRelatorio(venda, linha, total_vendas, vendasDaEquipe, numeroDeVendedores);
 
     return 0;
 }
@@ -162,7 +160,7 @@ double calcularTotalVendas(DefinaVenda venda[], int qtdVendas) {
     return total_vendas;
 }
 
-void encontrarMelhorVenda(DefinaVenda venda[], int qtdVendas) {
+void encontrarMelhorVenda(DefinaVenda venda[], int qtdVendas, int numeroDeVendedores) {
     for (int i = 0; i < qtdVendas; i++) {
         if (venda[i].valor_venda > venda[i].maior_venda) {
             venda[i].maior_venda = venda[i].valor_venda;
@@ -182,7 +180,7 @@ void ordenarVendedoresPorVendas(DefinaVenda venda[], int qtdVendas) {
     }
 }
 
-void gerarRelatorio(DefinaVenda venda[], int qtdVendas, double total_vendas, DefinaVendasDaEquipe vendasDaEquipe[]) {
+void gerarRelatorio(DefinaVenda venda[], int qtdVendas, double total_vendas, DefinaVendasDaEquipe vendasDaEquipe[], int numeroDeVendedores) {
     printf("------ Relatório de Vendas ------\n");
     printf("Total de Vendas da Empresa: R$ %.2lf\n", total_vendas);
     printf("\n\n");
@@ -199,7 +197,7 @@ void gerarRelatorio(DefinaVenda venda[], int qtdVendas, double total_vendas, Def
     int timeVencedor = -1;
     double maiorVendaTotal = 0.0;
 
-    for (int i = 0; i < MAX; i++) {
+    for (int i = 0; i < numeroDeVendedores; i++) {
         if (vendasDaEquipe[i].total_vendas > maiorVendaTotal) {
             maiorVendaTotal = vendasDaEquipe[i].total_vendas;
             timeVencedor = i;
