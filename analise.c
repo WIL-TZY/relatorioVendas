@@ -33,7 +33,7 @@ typedef struct {
 // ------------------------------------ Protótipos das funções aqui ------------------------------------ //
 double calcularTotalVendas(DefinaVenda venda[], int qtdVendas);
 void ordenarVendedoresPorVendas(DefinaVenda venda[], int qtdVendas);
-void gerarRelatorio(DefinaVenda venda[], int qtdVendas);
+void gerarRelatorio(DefinaVenda venda[], int qtdVendas, double total_vendas, DefinaVendasDaEquipe vendasDaEquipe[]);
 // ----------------------------------------------------------------------------------------------------- //
 
 int main() {
@@ -84,7 +84,7 @@ int main() {
                 // Processa apenas vendas com valor maior do que zero
                 if (venda[linha].valor_venda > 0.0) { 
                     // Verifica se o cargo indica um gerente
-                    if (strcmp(venda[linha].cargo, "gerente") == 0) {
+                    if (strcmp(venda[linha].cargo, "gerente")) {
                         // Armazena o nome do gerente
                         strcpy(vendasDaEquipe[venda[linha].equipe - 1].nome_gerente, venda[linha].nome_vendedor);
                     }
@@ -103,74 +103,9 @@ int main() {
 
     // ------------------------------------ USAR FUNÇÕES AQUI ------------------------------------ //
     
-    gerarRelatorio(venda, linha);
-
-    // ------------------------------- Total de vendas por equipe -------------------------------- //
-    // Inicializando as variáveis da struct
-    for (int i = 0; i < MAX; i++) {
-        vendasDaEquipe[i].equipe = i + 1;
-        vendasDaEquipe[i].total_vendas = 0.0;
-    }
-
-    // Iterando de novo cada linha p/ calcular o total de vendas de cada equipe
-    for (int i = 0; i < linha; i++) {
-        int indiceEquipe = venda[i].equipe - 1; 
-        vendasDaEquipe[indiceEquipe].total_vendas += venda[i].valor_venda;
-    }
-
-    printf("\n");
-    printf("Total de Vendas por Equipe (do maior para o menor):\n");
-    for (int i = 0; i < MAX; i++) { // Loop through the array of teams
-        if (vendasDaEquipe[i].total_vendas > 0.0) {
-            printf("Equipe %02d - Vendas: R$ %.2lf\n", vendasDaEquipe[i].equipe, vendasDaEquipe[i].total_vendas);
-        }
-    }
-
-    // ------------------------------- Gerente do time vencedor -------------------------------- //
-    int indiceTimeVencedor = -1;
-    double maiorVendaDaEquipe = 0.0;
-    char nomeGerenteTimeVencedor[MAX]; // Variável que será usada para armazenar o nome do gerente
-
-    // Iterando o array de times
-    for (int i = 0; i < MAX; i++) { 
-        if (vendasDaEquipe[i].total_vendas > maiorVendaDaEquipe) {
-            maiorVendaDaEquipe = vendasDaEquipe[i].total_vendas;
-            indiceTimeVencedor = i;
-
-            // Iterando o array de vendas para encontrar o nome do gerente
-            for (int j = 0; j < linha; j++) {
-                if (venda[j].equipe == (i + 1)) {
-                    strcpy(nomeGerenteTimeVencedor, venda[j].nome_vendedor);
-                    break;
-                }
-            }
-        }
-    }
-
-    if (indiceTimeVencedor != -1) {
-        printf("Gerente da Equipe Vencedora: %s\n", vendasDaEquipe[indiceTimeVencedor].nome_gerente);
-    } else {
-        printf("Erro: Nenhum time encontrado.\n");
-    }
-
-    // ------------------------------- Melhor vendedor(a) -------------------------------- //
-
-    int indiceMelhorVendedor = -1;
-    double maiorVenda = 0.0;
-
-    // Iterando o array das vendas
-    for (int i = 0; i < linha; i++) {
-        if (venda[i].valor_venda > maiorVenda) {
-            maiorVenda = venda[i].valor_venda;
-            indiceMelhorVendedor = i;
-        }
-    }
-
-    if (indiceMelhorVendedor != -1) {
-        printf("Melhor vendedor(a): %s\n", venda[indiceMelhorVendedor].nome_vendedor);
-    } else {
-        printf("Erro: Nenhum(a) vendedor(a) encontrado(a).\n");
-    }
+    double total_vendas = calcularTotalVendas(venda, linha);
+    ordenarVendedoresPorVendas(venda, linha);
+    gerarRelatorio(venda, linha, total_vendas, vendasDaEquipe);
 
     return 0;
 }
@@ -190,40 +125,65 @@ void ordenarVendedoresPorVendas(DefinaVenda venda[], int qtdVendas) {
     // Ou só comparar valor_venda de um com outro já dá?
 }
 
-void gerarRelatorio(DefinaVenda venda[], int qtdVendas) {
-    // Calcular total de vendas
-    double total_vendas = calcularTotalVendas(venda, qtdVendas);
-
-    // Ordenar vendedores por vendas
-    ordenarVendedoresPorVendas(venda, qtdVendas);
-
-    // Títulos
+void gerarRelatorio(DefinaVenda venda[], int qtdVendas, double total_vendas, DefinaVendasDaEquipe vendasDaEquipe[]) {
     printf("------ Relatório de Vendas ------\n");
     printf("Total de Vendas da Empresa: R$ %.2lf\n", total_vendas);
     printf("\n\n");
-    
-    // Total de vendas por equipe
-    // ...
 
-    // Gerente da equipe vencedora
-    // ...
-
-    // Melhor vendedor
-    // ...
-
-    // Lista de vendedores
+    // Imprimir a lista de vendedores
     printf("Lista de Vendedores (por vendas decrescentes):\n");
     printf("Nome\t\t\t\tCargo\t\tEquipe\t\tTotal de Vendas\t\tMaior Venda\t\tComissão\n");
 
     for (int i = 0; i < qtdVendas; i++) {
-        // Formatar e escrever os detalhes para cada vendedor (usando tabs tava dando inconsistência)
-        printf("%-30s %-20s %02d \t\tR$ %12.2f \tR$ %12.2f \tR$ %10.2f\n", 
-            venda[i].nome_vendedor, 
-            venda[i].cargo, 
-            venda[i].equipe, 
-            venda[i].valor_venda, 
-            venda[i].valor_venda, 
-            (venda[i].valor_venda * 0.03)
+        printf("%-30s %-20s %02d \t\tR$ %12.2f \tR$ %12.2f \tR$ %10.2f\n",
+            venda[i].nome_vendedor,
+            venda[i].cargo,
+            venda[i].equipe,
+            venda[i].valor_venda,
+            venda[i].valor_venda, // Maior venda não foi calculado ainda
+            venda[i].comissao
         );
+    }
+
+    // Imprimir o total de vendas por equipe
+    printf("\nTotal de Vendas por Equipe (do maior para o menor):\n");
+    for (int i = 0; i < MAX; i++) {
+        if (vendasDaEquipe[i].total_vendas > 0.0) {
+            printf("Equipe %02d - Vendas: R$ %.2lf\n", vendasDaEquipe[i].equipe, vendasDaEquipe[i].total_vendas);
+        }
+    }
+
+    // Imprimir o gerente do time vencedor
+    int indiceTimeVencedor = -1;
+    double maiorVendaDaEquipe = 0.0;
+
+    for (int i = 0; i < MAX; i++) {
+        if (vendasDaEquipe[i].total_vendas > maiorVendaDaEquipe) {
+            maiorVendaDaEquipe = vendasDaEquipe[i].total_vendas;
+            indiceTimeVencedor = i;
+        }
+    }
+
+    if (indiceTimeVencedor != -1) {
+        printf("Gerente da Equipe Vencedora: %s\n", vendasDaEquipe[indiceTimeVencedor].nome_gerente);
+    } else {
+        printf("Erro: Nenhum time encontrado.\n");
+    }
+
+    // Imprimir o melhor vendedor
+    int indiceMelhorVendedor = -1;
+    double maiorVenda = 0.0;
+
+    for (int i = 0; i < qtdVendas; i++) {
+        if (venda[i].valor_venda > maiorVenda) {
+            maiorVenda = venda[i].valor_venda;
+            indiceMelhorVendedor = i;
+        }
+    }
+
+    if (indiceMelhorVendedor != -1) {
+        printf("Melhor vendedor(a): %s\n", venda[indiceMelhorVendedor].nome_vendedor);
+    } else {
+        printf("Erro: Nenhum(a) vendedor(a) encontrado(a).\n");
     }
 }
